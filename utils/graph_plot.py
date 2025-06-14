@@ -14,7 +14,7 @@ def init_plot():
     ax.grid(True)
     return fig, ax
 
-def update_plot(ax, history_dict):
+def update_plot(ax, measurements, predictions, para):
 
     ax.clear()
     ax.set_title("Y-Position History")
@@ -23,15 +23,18 @@ def update_plot(ax, history_dict):
     ax.set_ylim(640, 0)
     ax.grid(True)
 
-
-    for label, y_list in history_dict.items():
+    for label, y_list in measurements.items():
         ax.plot(y_list[:], label=label)
-        break
+    
+    for label, y_list in predictions.items():
+        ax.plot(y_list[:], label="KF " + label)
+
+    for label, y_list in para.items():
+        ax.plot(y_list[:], label="Parabolic " + label)
+
 
     ax.legend()
     plt.pause(0.001)  # let it refresh
-
-    return history_dict
 
 
 

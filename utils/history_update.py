@@ -1,34 +1,67 @@
 import numpy as np
-import mediapipe as mp
-mp_pose = mp.solutions.pose
+from utils.Kalman1D import Kalman1D
 
-def update_history(history_dict, ball, landmarks, max_len=25):
+MAX_LEN = 100
+
+kalman_filter = {}
+
+def update_measurements(measurements, ball):
 
     if ball:
         ball_x, ball_y, ball_radius = ball
     else:
         ball_y = None
 
-    history_dict["Ball"].append(ball_y)
+    measurements["Ball"].append(ball_y)
 
-    history_dict["Left Foot"].append(get_landmark_y(landmarks, mp_pose.PoseLandmark.LEFT_FOOT_INDEX))
-    history_dict["Right Foot"].append(get_landmark_y(landmarks, mp_pose.PoseLandmark.RIGHT_FOOT_INDEX))
-    history_dict["Left Knee"].append(get_landmark_y(landmarks, mp_pose.PoseLandmark.LEFT_KNEE))
-    history_dict["Right Knee"].append(get_landmark_y(landmarks, mp_pose.PoseLandmark.RIGHT_KNEE))
-    history_dict["Left Hip"].append(get_landmark_y(landmarks, mp_pose.PoseLandmark.LEFT_HIP))
-    history_dict["Right Hip"].append(get_landmark_y(landmarks, mp_pose.PoseLandmark.RIGHT_HIP))
+    trim_histories(measurements, MAX_LEN)
 
-    predict_histories(history_dict)
+    return measurements
 
-    trim_histories(history_dict, max_len)
+def predict_KF(measurements, predictions):
+    
+    for key, y_values in measurements.items():
+        if key not in kalman_filter:
+            kalman_filter[key] = Kalman1D()
 
-    return history_dict
+        kf = kalman_filter[key]
 
-def predict_histories(history_dict, n_points=5):
-    for key, y_values in history_dict.items():
+        # Use the latest valid measurement
         valid_y = [y for y in y_values if y]
-        if len(valid_y) < 3:
-            # not enough points for prediction
+        if not valid_y:
+            predictions[key].append(None)
+            continue
+
+        measurement = valid_y[-1]
+
+        # Kalman update/predict
+        if not kf.initialized:
+            kf.x[0, 0] = measurement  # initialize position
+            kf.x[1, 0] = 0            # assume starting velocity = 0
+            kf.initialized = True
+
+        kf.update(measurement)
+        predicted_y = kf.predict()
+
+        predictions[key].append(float(predicted_y))
+
+    trim_histories(predictions, MAX_LEN)
+
+    return predictions
+        
+def predict_para(measurements, predictions, n_points=5):
+
+    for key, y_values in measurements.items():
+        
+        # if measurement valid, accept it
+        if y_values[-1]:
+            predictions[key].append(y_values[-1])
+            continue
+
+        # Use the latest valid measurement
+        valid_y = [y for y in y_values if y]
+        if not valid_y or len(valid_y) < 3:
+            predictions[key].append(None)
             continue
 
         # Take last n_points (at most)
@@ -46,16 +79,17 @@ def predict_histories(history_dict, n_points=5):
         except:
             prediction = None  # fail-safe
 
-        if not y_values[-1]:
-            history_dict[key][-1] = prediction
+        predictions[key].append(prediction)
 
-        
+    trim_histories(predictions, MAX_LEN)
+
+    return predictions
 
 
 
-def trim_histories(history_dict, max_len):
-    for key in history_dict:
-        history_dict[key] = history_dict[key][-max_len:]
+def trim_histories(measurements, max_len):
+    for key in measurements:
+        measurements[key] = measurements[key][-max_len:]
 
 def get_landmark_y(landmarks, landmark_id):
     if landmarks:

@@ -7,7 +7,7 @@ from utils.juggle_counter import update_juggle_count
 from utils.draw import draw_info
 from utils.ball_tracker import detect_football_yolo
 from utils.graph_plot import init_plot, update_plot
-from utils.history_update import update_history
+from utils.history_update import update_measurements, predict_KF, predict_para
 
 # --- Argument Parser ---
 parser = argparse.ArgumentParser(description="Football Juggle Counter")
@@ -31,15 +31,9 @@ else:
 juggle_count = 0
 fig, ax = init_plot()
 
-history_dict = {
-    "Ball": [],
-    "Left Foot": [],
-    "Right Foot": [],
-    "Left Knee": [],
-    "Right Knee": [],
-    "Left Hip": [],
-    "Right Hip": [],
-}
+measurements = {'Ball': []}
+predictions = {'Ball': []}
+predictions_para = {'Ball': []}
 
 juggle=False
 while cap.isOpened():
@@ -60,11 +54,14 @@ while cap.isOpened():
     ball = detect_football_yolo(frame)
 
     # update graphs
-    history_dict = update_history(history_dict, ball, landmarks)
-    update_plot(ax, history_dict)
+    measurements = update_measurements(measurements, ball)
+    predictions = predict_KF(measurements, predictions)
+    predictions_para = predict_para(measurements, predictions_para)
+    
+    update_plot(ax, measurements, predictions, predictions_para)
 
-    juggle_count, juggle = update_juggle_count(history_dict, juggle_count, juggle)
-    print(juggle)
+    #juggle_count, juggle = update_juggle_count(history, juggle_count, juggle)
+    #print(juggle)
 
     draw_info(frame, landmarks, ball, juggle_count)
 
