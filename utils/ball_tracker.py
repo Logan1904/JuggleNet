@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 
 # Load YOLOv8 model (choose the right one)
-model = YOLO("yolov8n.pt")  # Or your custom .pt model if you trained one
+model = YOLO("yolo12n.pt")  # Or your custom .pt model if you trained one
 model.to('cuda')
 
 # Optionally restrict to relevant class names (if your model includes 'sports ball' or 'football')

@@ -2,7 +2,7 @@ import cv2
 import argparse
 import os
 
-from utils.pose import get_pose_landmarks, get_pose_landmarks_yolo
+from utils.pose import get_pose_landmarks
 from utils.juggle_counter import update_juggle_count
 from utils.draw import draw_info
 from utils.ball_tracker import detect_football_yolo
@@ -43,12 +43,12 @@ while cap.isOpened():
         break
 
     # resize frame
-    frame = cv2.resize(frame, (640, 360))
+    #frame = cv2.resize(frame, (640, 360))
     # rotate frame (for pre-recorded iphone)
-    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    #frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
     # detect pose landmarks
-    landmarks = get_pose_landmarks(frame)
+    #landmarks = get_pose_landmarks(frame)
 
     # detect football via YOLO
     ball = detect_football_yolo(frame)
@@ -58,12 +58,12 @@ while cap.isOpened():
     predictions = predict_KF(measurements, predictions)
     predictions_para = predict_para(measurements, predictions_para)
     
-    update_plot(ax, measurements, predictions, predictions_para)
+    update_plot(ax, predictions)
 
-    #juggle_count, juggle = update_juggle_count(history, juggle_count, juggle)
-    #print(juggle)
+    juggle_count, juggle = update_juggle_count(predictions, juggle_count, juggle)
 
-    draw_info(frame, landmarks, ball, juggle_count)
+
+    draw_info(frame, [], ball, juggle_count)
 
     cv2.imshow("Football Juggle Counter", frame)
     key = cv2.waitKey(1) & 0xFF

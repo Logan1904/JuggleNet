@@ -10,7 +10,7 @@ def update_measurements(measurements, ball):
     if ball:
         ball_x, ball_y, ball_radius = ball
     else:
-        ball_y = None
+        ball_y = np.nan
 
     measurements["Ball"].append(ball_y)
 
@@ -27,9 +27,9 @@ def predict_KF(measurements, predictions):
         kf = kalman_filter[key]
 
         # Use the latest valid measurement
-        valid_y = [y for y in y_values if y]
+        valid_y = [y for y in y_values if not np.isnan(y)]
         if not valid_y:
-            predictions[key].append(None)
+            predictions[key].append(np.nan)
             continue
 
         measurement = valid_y[-1]
@@ -54,14 +54,14 @@ def predict_para(measurements, predictions, n_points=5):
     for key, y_values in measurements.items():
         
         # if measurement valid, accept it
-        if y_values[-1]:
+        if not np.isnan(y_values[-1]):
             predictions[key].append(y_values[-1])
             continue
 
         # Use the latest valid measurement
-        valid_y = [y for y in y_values if y]
+        valid_y = [y for y in y_values if not np.isnan(y)]
         if not valid_y or len(valid_y) < 3:
-            predictions[key].append(None)
+            predictions[key].append(np.nan)
             continue
 
         # Take last n_points (at most)
@@ -77,7 +77,7 @@ def predict_para(measurements, predictions, n_points=5):
             next_y = poly(len(y_fit))
             prediction = float(next_y)
         except:
-            prediction = None  # fail-safe
+            prediction = np.isnan  # fail-safe
 
         predictions[key].append(prediction)
 
