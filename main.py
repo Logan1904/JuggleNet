@@ -1,13 +1,15 @@
 import cv2
 import argparse
 import os
+import numpy as np
 
-from utils.pose import get_pose_landmarks
+from utils.pose import get_POI
 from utils.juggle_counter import update_juggle_count
 from utils.draw import draw_info
-from utils.ball_tracker import detect_football_yolo
 from utils.graph_plot import init_plot, update_plot
 from utils.history_update import update_measurements, predict_KF, predict_para
+
+POI = ["Ball", "Head", "Left_Knee", "Right_Knee", "Right_Foot", "Left_Foot"]
 
 # --- Argument Parser ---
 parser = argparse.ArgumentParser(description="Football Juggle Counter")
@@ -28,42 +30,35 @@ else:
     print("Running on live webcam.")
 
 # --- App Loop ---
-juggle_count = 0
 fig, ax = init_plot()
 
-measurements = {'Ball': []}
-predictions = {'Ball': []}
-predictions_para = {'Ball': []}
+measurements, predictions = {},{}
+for point in POI:
+    measurements[point] = np.empty(shape=(0,4))
+    predictions[point] = np.empty(shape=(0,4))
 
-juggle=False
+juggle_count = 0
+
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         print("Video stream ended or camera disconnected.")
         break
 
-    # resize frame
-    #frame = cv2.resize(frame, (640, 360))
-    # rotate frame (for pre-recorded iphone)
-    #frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    # detect POI
+    POIs = get_POI(frame)
 
-    # detect pose landmarks
-    #landmarks = get_pose_landmarks(frame)
-
-    # detect football via YOLO
-    ball = detect_football_yolo(frame)
-
-    # update graphs
-    measurements = update_measurements(measurements, ball)
+    # update arrays
+    measurements = update_measurements(measurements, POIs)
+    
     predictions = predict_KF(measurements, predictions)
-    predictions_para = predict_para(measurements, predictions_para)
+    #predictions_para = predict_para(measurements, predictions)
     
     update_plot(ax, predictions)
 
-    juggle_count, juggle = update_juggle_count(predictions, juggle_count, juggle)
+    juggle_count = update_juggle_count(predictions, juggle_count)
 
-
-    draw_info(frame, [], ball, juggle_count)
+    draw_info(frame, POIs, juggle_count)
 
     cv2.imshow("Football Juggle Counter", frame)
     key = cv2.waitKey(1) & 0xFF

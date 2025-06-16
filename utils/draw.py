@@ -6,32 +6,33 @@ mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
 selected_landmarks = [
-    mp_pose.PoseLandmark.LEFT_HIP,
-    mp_pose.PoseLandmark.RIGHT_HIP,
+    mp_pose.PoseLandmark.NOSE,
     mp_pose.PoseLandmark.LEFT_KNEE,
     mp_pose.PoseLandmark.RIGHT_KNEE,
     mp_pose.PoseLandmark.LEFT_FOOT_INDEX,
     mp_pose.PoseLandmark.RIGHT_FOOT_INDEX,
 ]
 
-def draw_info(frame, landmarks, ball, juggle_count):
+def draw_info(frame, POI, juggle_count):
 
-    if landmarks:
-        draw_selected_landmarks(frame, landmarks, selected_landmarks)
+    for point,val in POI.items():
+
+        if val[0]:
+            h, w, _ = frame.shape
+
+            cx, cy = val[0]*w, val[1]*h
+            bw, bh = val[2]*w, val[3]*h
+
+            x1 = cx - bw / 2     # top-left x
+            y1 = cy - bh / 2     # top-left y
+            x2 = cx + bw / 2
+            y2 = cy + bh / 2
+
+            if point == 'Ball':
+                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+            else:
+                cv2.circle(frame, (int(cx), int(cy)), 6, (0, 0, 255), -1)
+
     
-    if ball:
-        ball_x, ball_y, ball_radius = ball
-        cv2.circle(frame, (ball_x, ball_y), ball_radius, (0, 255, 255), 2)
-
     # Juggle counter
-    cv2.putText(frame, f"Juggles: {juggle_count}", (10, 50),
-                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
-
-
-def draw_selected_landmarks(frame, landmarks, landmark_ids, color=(0, 255, 0), radius=6):
-    h, w, _ = frame.shape
-    for idx in landmark_ids:
-        lm = landmarks.landmark[idx]
-        if lm.visibility > 0.5:
-            cx, cy = int(lm.x * w), int(lm.y * h)
-            cv2.circle(frame, (cx, cy), radius, color, -1)
+    cv2.putText(frame, f"Juggles: {juggle_count}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0), 3)

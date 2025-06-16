@@ -10,7 +10,7 @@ class Kalman1D:
         self.R = np.array([[measurement_variance]])     # Measurement Noise
         self.Q = process_variance * np.eye(2)           # Process Noise
 
-        self.initialized = False
+        self.initialised = False
 
     def predict(self):
         self.x = self.F @ self.x                        # Prior State Estimate
@@ -27,4 +27,4 @@ class Kalman1D:
         self.x = self.x + K @ y                         # Posterior State Estimate
         self.P = (np.eye(2) - K @ self.H) @ self.P      # Posterior Covariance Estimate
 
-        self.initialized = True
+        self.initialised = True

@@ -5,14 +5,13 @@ MAX_LEN = 100
 
 kalman_filter = {}
 
-def update_measurements(measurements, ball):
+def update_measurements(measurements, POIs):
 
-    if ball:
-        ball_x, ball_y, ball_radius = ball
-    else:
-        ball_y = np.nan
-
-    measurements["Ball"].append(ball_y)
+    for point,val in POIs.items():
+        if val[0] and val[1]:
+            measurements[point] = np.vstack([measurements[point], val])
+        else:
+            measurements[point] = np.vstack([measurements[point], np.full((val.shape), np.nan)])
 
     trim_histories(measurements, MAX_LEN)
 
@@ -20,82 +19,98 @@ def update_measurements(measurements, ball):
 
 def predict_KF(measurements, predictions):
     
-    for key, y_values in measurements.items():
+    for key,val in measurements.items():
+        x_vals = val[:,0]
+        y_vals = val[:,1]
+
         if key not in kalman_filter:
-            kalman_filter[key] = Kalman1D()
+            kalman_filter[key] = [Kalman1D(),Kalman1D()]
 
-        kf = kalman_filter[key]
+        kf_x = kalman_filter[key][0]
+        kf_y = kalman_filter[key][1]
 
-        # Use the latest valid measurement
-        valid_y = [y for y in y_values if not np.isnan(y)]
-        if not valid_y:
-            predictions[key].append(np.nan)
-            continue
+        # Use the latest measurement
+        measurement_x = x_vals[-1]
+        measurement_y = y_vals[-1]
 
-        measurement = valid_y[-1]
+        # If latest measurement is invalid, just predict
+        if not np.isnan(measurement_x):
+            if not kf_x.initialised:
+                kf_x.x[0,0] = measurement_x     # initialise position
+                kf_x.x[1,0] = 0                 # assume starting velocity is 0
+                kf_x.initialised = True
+            kf_x.update(measurement_x)
+        if not np.isnan(measurement_y):
+            if not kf_y.initialised:
+                kf_y.x[0,0] = measurement_y     # initialise position
+                kf_y.x[1,0] = 0                 # assume starting velocity is 0
+                kf_y.initialised = True
+            kf_y.update(measurement_y)
+        
+        predicted_x = kf_x.predict()
+        predicted_y = kf_y.predict()
 
-        # Kalman update/predict
-        if not kf.initialized:
-            kf.x[0, 0] = measurement  # initialize position
-            kf.x[1, 0] = 0            # assume starting velocity = 0
-            kf.initialized = True
-
-        kf.update(measurement)
-        predicted_y = kf.predict()
-
-        predictions[key].append(float(predicted_y))
-
+        predictions[key] = np.vstack([predictions[key], np.array([predicted_x, predicted_y, val[-1,2], val[-1,3]])])
+        
     trim_histories(predictions, MAX_LEN)
 
     return predictions
         
 def predict_para(measurements, predictions, n_points=5):
 
-    for key, y_values in measurements.items():
+    for key,val in measurements.items():
+        x_vals = val[:,0]
+        y_vals = val[:,1]
+
+        # if measurement valid, accept it
+        if not np.isnan(x_vals[-1]):
+            predicted_x = x_vals[-1]
+        else:
+            # check if at least 3 valid measurements exist
+            valid_x = [x for x in x_vals if not np.isnan(x)]
+            if not valid_x or len(valid_x) < 3:
+                predicted_x = np.nan
+            else:
+                x_fit = np.array(valid_x[-n_points:])
+                xy_fit = np.arange(len(x_fit))
+
+                try:
+                    # Fit a quadratic polynomial
+                    coeffs = np.polyfit(x_fit, xy_fit, deg=2)
+                    poly = np.poly1d(coeffs)
+
+                    predicted_x = poly(len(xy_fit))
+                except:
+                    predicted_x = np.isnan
         
         # if measurement valid, accept it
-        if not np.isnan(y_values[-1]):
-            predictions[key].append(y_values[-1])
-            continue
+        if not np.isnan(y_vals[-1]):
+            predicted_y = y_vals[-1]
+        else:
+            # check if at least 3 valid measurements exist
+            valid_y = [y for y in y_vals if not np.isnan(y)]
+            if not valid_y or len(valid_y) < 3:
+                predicted_y = np.nan
+            else:
+                y_fit = np.array(valid_y[-n_points:])
+                yy_fit = np.arange(len(y_fit))
 
-        # Use the latest valid measurement
-        valid_y = [y for y in y_values if not np.isnan(y)]
-        if not valid_y or len(valid_y) < 3:
-            predictions[key].append(np.nan)
-            continue
+                try:
+                    # Fit a quadratic polynomial
+                    coeffs = np.polyfit(y_fit, yy_fit, deg=2)
+                    poly = np.poly1d(coeffs)
 
-        # Take last n_points (at most)
-        y_fit = np.array(valid_y[-n_points:])
-        x_fit = np.arange(len(y_fit))
+                    predicted_y = poly(len(yy_fit))
+                except:
+                    predicted_y = np.isnan
 
-        try:
-            # Fit a quadratic polynomial
-            coeffs = np.polyfit(x_fit, y_fit, deg=2)
-            poly = np.poly1d(coeffs)
 
-            # Predict next y (at time x = len(y_fit))
-            next_y = poly(len(y_fit))
-            prediction = float(next_y)
-        except:
-            prediction = np.isnan  # fail-safe
-
-        predictions[key].append(prediction)
+        predictions[key] = np.vstack([predictions[key], np.array([predicted_x, predicted_y, val[-1,2], val[-1,3]])])
 
     trim_histories(predictions, MAX_LEN)
 
     return predictions
 
-
-
 def trim_histories(measurements, max_len):
     for key in measurements:
-        measurements[key] = measurements[key][-max_len:]
-
-def get_landmark_y(landmarks, landmark_id):
-    if landmarks:
-        lm = landmarks.landmark[landmark_id]
-        if lm.visibility > 0.5:
-            return int(lm.y * 640)
-            
-        
-    return None
+        measurements[key] = measurements[key][-max_len:,:]
