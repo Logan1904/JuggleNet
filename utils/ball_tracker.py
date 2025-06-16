@@ -1,11 +1,11 @@
 from ultralytics import YOLO
 
 # Load YOLOv8 model (choose the right one)
-model = YOLO("yolo12n.pt")  # Or your custom .pt model if you trained one
+model = YOLO("./models/best.pt")  # Or your custom .pt model if you trained one
 model.to('cuda')
 
 # Optionally restrict to relevant class names (if your model includes 'sports ball' or 'football')
-BALL_CLASS_NAMES = ['sports ball']
+BALL_CLASS_NAMES = ["football"]
 
 def detect_football_yolo(frame):
     results = model.predict(source=frame, conf=0.3, verbose=False, device=0)
