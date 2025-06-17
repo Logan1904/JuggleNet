@@ -3,13 +3,15 @@ import numpy as np
 
 
 def update_juggle_count(predictions, current_count):
+    # juggle using simple minimum point detection
+    # TODO: optimise find_peaks function - prominence, height, etc.
+    # TODO: link with body pose landmarks to categorise which part of feet did the juggle
 
     y = np.array(predictions['Ball'][:,1])
     
     if len(y) > 10:
-
         # find a minimum point in position
-        min_peak, _ = find_peaks(y, prominence=2)    # max peaks of y will be min peaks of height trajectory
+        min_peak, _ = find_peaks(y)    # max peaks of y will be min peaks of height trajectory
 
         if min_peak.any():
             current_count += 1
@@ -17,6 +19,5 @@ def update_juggle_count(predictions, current_count):
             # Reset history to avoid double-counting
             for key in predictions:
                 predictions[key] = np.empty(shape=(0,4))
-
 
     return current_count

@@ -2,10 +2,12 @@ import numpy as np
 from utils.Kalman1D import Kalman1D
 
 MAX_LEN = 100
-
 kalman_filter = {}
 
 def update_measurements(measurements, POIs):
+    # measurements in format {'Object': np.array([pos_x_norm, pos_y_norm, width_norm, height_norm])}
+    # No readings will result in np.array([np.nan, np.nan, 0, 0])
+    # width and height of body pose landmarks always 0, 0
 
     for point,val in POIs.items():
         if val[0] and val[1]:
@@ -18,6 +20,9 @@ def update_measurements(measurements, POIs):
     return measurements
 
 def predict_KF(measurements, predictions):
+    # predictions in format {'Object': np.array([pos_x_norm, pos_y_norm, width_norm, height_norm])}
+    # No readings will result in np.array([np.nan, np.nan, 0, 0])
+    # width and height of body pose landmarks always 0, 0
     
     for key,val in measurements.items():
         x_vals = val[:,0]
@@ -51,12 +56,15 @@ def predict_KF(measurements, predictions):
         predicted_y = kf_y.predict()
 
         predictions[key] = np.vstack([predictions[key], np.array([predicted_x, predicted_y, val[-1,2], val[-1,3]])])
-        
+
     trim_histories(predictions, MAX_LEN)
 
     return predictions
         
-def predict_para(measurements, predictions, n_points=5):
+def predict_para(measurements, predictions, min_points=5):
+    # predictions in format {'Object': np.array([pos_x_norm, pos_y_norm, width_norm, height_norm])}
+    # No readings will result in np.array([np.nan, np.nan, 0, 0])
+    # width and height of body pose landmarks always 0, 0
 
     for key,val in measurements.items():
         x_vals = val[:,0]
@@ -66,44 +74,45 @@ def predict_para(measurements, predictions, n_points=5):
         if not np.isnan(x_vals[-1]):
             predicted_x = x_vals[-1]
         else:
-            # check if at least 3 valid measurements exist
+            
+            # check if at least min_points exist
             valid_x = [x for x in x_vals if not np.isnan(x)]
-            if not valid_x or len(valid_x) < 3:
+            if not valid_x or len(valid_x) < min_points:
                 predicted_x = np.nan
             else:
-                x_fit = np.array(valid_x[-n_points:])
+                x_fit = np.array(valid_x[-min_points:])
                 xy_fit = np.arange(len(x_fit))
 
                 try:
                     # Fit a quadratic polynomial
-                    coeffs = np.polyfit(x_fit, xy_fit, deg=2)
+                    coeffs = np.polyfit(xy_fit, x_fit, deg=2)
                     poly = np.poly1d(coeffs)
 
                     predicted_x = poly(len(xy_fit))
+
                 except:
-                    predicted_x = np.isnan
+                    predicted_x = np.nan
         
         # if measurement valid, accept it
         if not np.isnan(y_vals[-1]):
             predicted_y = y_vals[-1]
         else:
-            # check if at least 3 valid measurements exist
+            # check if at least min_points exist
             valid_y = [y for y in y_vals if not np.isnan(y)]
-            if not valid_y or len(valid_y) < 3:
+            if not valid_y or len(valid_y) < min_points:
                 predicted_y = np.nan
             else:
-                y_fit = np.array(valid_y[-n_points:])
+                y_fit = np.array(valid_y[-min_points:])
                 yy_fit = np.arange(len(y_fit))
 
                 try:
                     # Fit a quadratic polynomial
-                    coeffs = np.polyfit(y_fit, yy_fit, deg=2)
+                    coeffs = np.polyfit(yy_fit, y_fit, deg=2)
                     poly = np.poly1d(coeffs)
 
                     predicted_y = poly(len(yy_fit))
                 except:
-                    predicted_y = np.isnan
-
+                    predicted_y = np.nan
 
         predictions[key] = np.vstack([predictions[key], np.array([predicted_x, predicted_y, val[-1,2], val[-1,3]])])
 

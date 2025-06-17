@@ -14,8 +14,7 @@ def init_plot():
     ax.grid(True)
     return fig, ax
 
-def update_plot(ax, predictions):
-
+def update_plot(ax, measurements, predictions):
     ax.clear()
     ax.set_title("Y-Position History")
     ax.set_xlabel("Frame")
@@ -23,10 +22,17 @@ def update_plot(ax, predictions):
     ax.set_ylim(1, 0)
     ax.grid(True)
 
-    for point,val in predictions.items():
-        ax.plot(val[:,1], label=point)
+    # get measurements and predictions of ball
+    y = measurements["Ball"][:,1]
+    y_pred = predictions["Ball"][:,1]       # WARNING: y_pred might be shorter than y as cleared after juggle
 
-    ax.legend()
+    # iterate and plot
+    for i in range(len(y_pred)):
+        if not np.isnan(y[i]):
+            ax.plot(i, y[i], color='b', marker="o")
+        else:
+            ax.plot(i, y_pred[i], color='r', marker="x")
+
     plt.pause(0.001)  # let it refresh
 
 

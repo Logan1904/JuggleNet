@@ -15,11 +15,14 @@ POI_MP_MAPPING = {
 }
 
 # custom fine-tuned model
-MODEL = YOLO("./models/best.pt")  # Or your custom .pt model if you trained one
+MODEL = YOLO("./models/best.pt")
 MODEL.to('cuda')
 
 def get_POI(frame):
-
+    # POI in format {'Object': np.array([pos_x_norm, pos_y_norm, width_norm, height_norm])}
+    # No readings will result in np.array([None, None, 0, 0])
+    # width and height of body pose landmarks always 0, 0
+    
     landmarks_mp = detect_landmarks_mp(frame)
     POI_landmarks = parse_landmarks_mp(landmarks_mp, POI_MP_MAPPING)
 
