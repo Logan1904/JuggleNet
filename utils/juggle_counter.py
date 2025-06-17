@@ -4,8 +4,6 @@ import numpy as np
 
 def update_juggle_count(predictions, current_count):
     # juggle using simple minimum point detection
-    # TODO: optimise find_peaks function - prominence, height, etc.
-    # TODO: link with body pose landmarks to categorise which part of feet did the juggle
 
     y = np.array(predictions['Ball'][:,1])
     

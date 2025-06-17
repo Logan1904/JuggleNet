@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import mediapipe as mp
 
 
 def init_plot():

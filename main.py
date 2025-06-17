@@ -3,11 +3,11 @@ import argparse
 import os
 import numpy as np
 
-from utils.pose import get_POI
+from utils.vision_estimate import get_POI
 from utils.juggle_counter import update_juggle_count
-from utils.draw import draw_info
-from utils.graph_plot import init_plot, update_plot
-from utils.history_update import update_measurements, predict_KF, predict_para
+from utils.draw_POI import draw_info
+from utils.plot_graph import init_plot, update_plot
+from utils.update_predict import update_measurements, predict_KF, predict_para
 
 POI = ["Ball", "Head", "Left_Knee", "Right_Knee", "Right_Foot", "Left_Foot"]
 
