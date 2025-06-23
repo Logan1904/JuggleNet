@@ -45,10 +45,13 @@ def parse_landmarks_mp(landmarks_mp, POI_MP_MAPPING):
     POI = {}
 
     for key,val in POI_MP_MAPPING.items():
-        output = landmarks_mp.landmark[val]
 
-        if output.visibility > 0.5:
-            POI[key] = np.array([output.x, output.y, 0, 0])
+        if landmarks_mp:
+            output = landmarks_mp.landmark[val]
+            if output.visibility > 0.5:
+                POI[key] = np.array([output.x, output.y, 0, 0])
+            else:
+                POI[key] = np.array([None, None, 0, 0])
         else:
             POI[key] = np.array([None, None, 0, 0])
 
