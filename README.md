@@ -100,4 +100,5 @@ yolo task=detect \
 
 ## 🛠️ TODO
 - [ ] Add acceleration (gravity) to Kalman Filter for more realistic estimations (linear velocity is not accurate)
-- [ ] Improve juggle logic by incorporating with body pose information to categorise body part used for each juggle
+- [ ] Improve juggle logic by using a 1D CNN
+- [ ] Comparison between untuned YOLO and finetuned YOLO
