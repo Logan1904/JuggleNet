@@ -58,7 +58,14 @@ pip install -r requirements.txt
 
 ### 3. Run Script
 ```bash
-python main.py --video <your_video> --save <your_save_directory>
+python main.py  # Run live on webcam input
+```
+
+#### Optional Arguments
+```bash
+--video <your_video>          # To run on pre-recorded video
+--save <your_save_directory>  # To save analysed video
+-- plot                       # To plot ball Y-position
 ```
 
 ## 🏋️ Fine-Tuning YOLO for Football Detection

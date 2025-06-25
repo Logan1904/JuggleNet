@@ -15,6 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Football Juggle Counter")
     parser.add_argument('--video', type=str, default=None, help='Path to video file. Leave empty to use webcam.')
     parser.add_argument('--save', type=str, default=None, help='Path to save directory. Leave empty to not save.')
+    parser.add_argument('--plot', action='store_true', help='Plot ball Y-trajectory.')
 
     return parser.parse_args()
 
@@ -59,7 +60,8 @@ def main():
         video_writer = cv2.VideoWriter(save_path, fourcc, fps, (width, height))
 
     # Initialise plot
-    fig, ax = init_plot()
+    if args.plot:
+        fig, ax = init_plot()
 
     # Initialise history variables
     measurements, predictions = {},{}
@@ -91,7 +93,8 @@ def main():
         juggle_count = update_juggle_count(predictions, juggle_count)
 
         # update plot
-        update_plot(ax, measurements, predictions)
+        if args.plot:
+            update_plot(ax, measurements, predictions)
 
         # draw on image
         draw_info(frame, POIs, juggle_count)
