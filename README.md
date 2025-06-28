@@ -1,6 +1,6 @@
-# ⚽ JuggleNet 🧠
+# ⚽ JuggleNet
 
-> **AI-powered football juggling detector using YOLOv8**
+> **AI-powered football juggling detector**
 
 JuggleNet is a Computer Vision project that tracks a football and your lower body landmarks to detect and count juggles. 
 
@@ -105,7 +105,15 @@ yolo task=detect \
   <img src="./assets/model_finetune_results.png" width="600"/>
 </p>
 
+⚖️ Comparison
+<p align="center">
+  <img src="./assets/untuned.gif" width="45%" style="display:inline-block; margin-right: 10px;"/>
+  <img src="./assets/finetuned.gif" width="45%" style="display:inline-block;"/>
+</p>
+
+<p align="center">
+  <b>Untuned YOLO (left) vs Finetuned YOLO (right): note how due to the inconsistency in football detection for the untuned model, the juggle detection struggles</b>
+</p>
+
 ## 🛠️ TODO
-- [ ] Add acceleration (gravity) to Kalman Filter for more realistic estimations (linear velocity is not accurate)
-- [ ] Improve juggle logic by using a 1D CNN
-- [ ] Comparison between untuned YOLO and finetuned YOLO
+- [x] Comparison between untuned YOLO and finetuned YOLO
