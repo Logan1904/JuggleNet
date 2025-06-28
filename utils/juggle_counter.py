@@ -9,7 +9,7 @@ def update_juggle_count(predictions, current_count):
     
     if len(y) > 10:
         # find a minimum point in position
-        min_peak, _ = find_peaks(y)    # max peaks of y will be min peaks of height trajectory
+        min_peak, _ = find_peaks(y,prominence=0.02 )    # max peaks of y will be min peaks of height trajectory
 
         if min_peak.any():
             current_count += 1
