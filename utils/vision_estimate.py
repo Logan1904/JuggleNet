@@ -15,7 +15,7 @@ POI_MP_MAPPING = {
 }
 
 # custom fine-tuned model
-MODEL = YOLO("./models/best.pt")
+MODEL = YOLO("./models/finetuned.pt")
 MODEL.to('cuda')
 
 def get_POI(frame):
