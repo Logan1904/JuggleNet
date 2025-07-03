@@ -4,15 +4,15 @@ import os
 import numpy as np
 
 from utils.vision_estimate import get_POI
-from utils.juggle_counter import update_juggle_count
 from utils.draw_POI import draw_info
-from utils.plot_graph import init_plot, update_plot
-from utils.update_predict import update_measurements, predict_KF, predict_para
+from utils.stroke_counter import update_stroke_count
+from utils.plot_graph import init_landmark_plot, update_landmark_plot
+from utils.update_predict import update_measurements, predict_KF
 
-POI = ["Ball", "Head", "Left_Knee", "Right_Knee", "Right_Foot", "Left_Foot"]
+POI = ["Head", "Left_Knee", "Right_Knee", "Right_Hip", "Left_Hip", "Right_Heel", "Left_Heel", "Left_Wrist", "Right_Wrist", "Left_Shoulder", "Right_Shoulder", "Left_Elbow", "Right_Elbow"] # "Right_Ankle", "Left_Ankle",
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Football Juggle Counter")
+    parser = argparse.ArgumentParser(description="Rowing pose estimator")
     parser.add_argument('--video', type=str, default=None, help='Path to video file. Leave empty to use webcam.')
     parser.add_argument('--save', type=str, default=None, help='Path to save directory. Leave empty to not save.')
     parser.add_argument('--plot', action='store_true', help='Plot ball Y-trajectory.')
@@ -61,7 +61,7 @@ def main():
 
     # Initialise plot
     if args.plot:
-        fig, ax = init_plot()
+        fig_lm, ax_lm = init_landmark_plot()
 
     # Initialise history variables
     measurements, predictions = {},{}
@@ -69,8 +69,8 @@ def main():
         measurements[point] = np.empty(shape=(0,4))
         predictions[point] = np.empty(shape=(0,4))
 
-    # Initialise juggle counter
-    juggle_count = 0
+    # Initialise stroke counter
+    stroke_count = 0
 
     # Loop
     while cap.isOpened():
@@ -89,18 +89,18 @@ def main():
         predictions = predict_KF(measurements, predictions)
         #predictions= predict_para(measurements, predictions)
 
-        # count juggle
-        juggle_count = update_juggle_count(predictions, juggle_count)
+        # update stroke count
+        stroke_count = update_stroke_count(predictions, stroke_count)
 
         # update plot
         if args.plot:
-            update_plot(ax, measurements, predictions)
+            update_landmark_plot(ax_lm, measurements, predictions, POI)
 
         # draw on image
-        draw_info(frame, POIs, juggle_count)
+        draw_info(frame, POIs, stroke_count)
 
         # show image
-        cv2.imshow("Football Juggle Counter", frame)
+        cv2.imshow("Rowing Stroke Counter", frame)
         
         # write video
         if video_writer:
