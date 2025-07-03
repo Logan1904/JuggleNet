@@ -1,11 +1,11 @@
-# ⚽ JuggleNet
+# 🚣 StrokeCountNet
 
-> **AI-powered football juggling detector**
+> **AI-powered rowing stroke counter**
 
-JuggleNet is a Computer Vision project that tracks a football and your lower body landmarks to detect and count juggles. 
+StrokeCountNet is a Computer Vision project that tracks body landmarks count strokes and aid video analysis. 
 
 <p align="center">
-  <img src="./assets/Vid1_Analysed.gif" width="300"/>
+  <img src="./assets/Vid0_Analysed.gif" width="300"/>
 </p>
 
 ---
@@ -13,12 +13,12 @@ JuggleNet is a Computer Vision project that tracks a football and your lower bod
 ## 🚀 Features
 
 - ✅ **Ball Detection** with **Fine-Tuned** YOLOv8
-- 🦿 **Body Pose Estimation** with MediaPipe (hips, knees, feet)
+- 🦿 **Body Pose Estimation** with MediaPipe (hips, wrist, knees, feet)
 - 🧮 **Smoothed Estimation** via Kalman Filter
-- 📈 **Live Graphing** of ball Y-position
-- 🧠 **Juggle Detection Logic** using physics-inspired heuristic
+- 📈 **Live Graphing** of landmark X-positions
+- 🧠 **Stroke Count Logic** using physics-inspired heuristic
 - 🔁 Works on **webcam or video input**
-- 🎨 Visual overlay showing keypoints, bounding boxes, and live counts
+- 🎨 Visual overlay showing keypoints, and live counts
 
 ---
 
@@ -26,20 +26,22 @@ JuggleNet is a Computer Vision project that tracks a football and your lower bod
 ```
 .
 ├── utils/
-│   ├── draw_POI.py         # Draw POI landmarks
-│   ├── plot_graph.py       # Plot ball Y-position
-│   ├── update_predict.py   # Update measurements, perform predictions
-│   ├── juggle_counter.py   # Count juggles
-│   ├── Kalman1D.py         # 1D Kalman Filter
-│   └── vision_estimate.pt  # Extract POIs via vision pipeline
+│   ├── draw_POI.py          # Draw POI landmarks
+│   ├── plot_graph.py        # Plot landmark time series & positions
+│   ├── update_predict.py    # Update measurements, perform predictions
+│   ├── stroke_counter.py    # Count strokes
+│   ├── Kalman1D.py          # 1D Kalman Filter
+│   ├── vision_estimate.py   # Extract POIs via vision pipeline
+│   └── download_youtube_video.sh  # Helper script for YouTube downloads
 ├── models/
-│   └── best.pt             # Fine-tunes YOLOv8 model
+│   └── finetuned.pt         # Fine-tuned YOLOv8 model
 ├── source_data/
-│   └── Vid1.mp4            # Example input video
+│   └── Vid0.mp4             # Example input video
 ├── save/
-│   └── Vid1_Analysed.mp4   # Analysed example video
-├── main.py                 # Main driver script
-└── README.md               # Project documentation
+│   └── Vid0_Analysed.mp4    # Analysed example video
+├── main.py                  # Main driver script
+├── pyproject.toml           # Python project configuration & dependencies
+└── README.md                # Project documentation
 ```
 
 ## 🧰 Getting Started
@@ -47,18 +49,19 @@ JuggleNet is a Computer Vision project that tracks a football and your lower bod
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/yourusername/jugglenet.git
-cd jugglenet
+git clone https://github.com/shug3502/strokecountnet.git
+cd strokecountnet
 ```
 
 ### 2. Install Dependencies
 ```bash
-pip install -r requirements.txt
+uv venv .venv
+uv pip install -e .
 ```
 
 ### 3. Run Script
 ```bash
-python main.py  # Run live on webcam input
+python main.py --video source_data/Vid0.mp4 --save save/ --plot  # Run on video in source_data folder
 ```
 
 #### Optional Arguments
@@ -68,28 +71,20 @@ python main.py  # Run live on webcam input
 -- plot                       # To plot ball Y-position
 ```
 
-## 🏋️ Fine-Tuning YOLO for Football Detection
+## 👷 Based on a football juggle counter
 
-To accurately detect the football in various lighting and motion conditions, we fine-tuned a lightweight YOLO model on a custom dataset.
+This was built on a similar project for counting the number of juggles of a football, [JuggleNet](https://github.com/Logan1904/JuggleNet)
 
 ⚙️ Model Details
 
+Uses the model fine-tuned in the [JuggleNet](https://github.com/Logan1904/JuggleNet) project. 
+
  - Base model: YOLOv8n (Ultralytics)
- - Task: Object detection (1 class: football)
- - Training size: 2541 labeled images
- - Hardware: GTX 1650, 4GB VRAM
-
-🗂️ Dataset
-
- - Original Source: [Juggling Computer Vision Project](https://universe.roboflow.com/football-bjlgx/juggling-xfitx)
- - Final Fine-Tuning Source: [Football Detection](https://app.roboflow.com/lokran/football-detector-bt79i/1)
-
-🧹 Pre-Processing
-
- - Original classes: 3 (Football, Person, Foot)
- - Preprocessing: Filtered to retain only the football class, cleaned up annotations for football
+ - Task: Object detection 
 
 🧪 Training Configuration
+
+Previously fine tuning was done, and to improve detection for specifically for rowing pose estimation, you could run something like:
 
 ```bash
 yolo task=detect \
@@ -101,19 +96,3 @@ yolo task=detect \
      batch=8 \
 ```
 
-<p align="center">
-  <img src="./assets/model_finetune_results.png" width="600"/>
-</p>
-
-⚖️ Comparison
-<p align="center">
-  <img src="./assets/untuned.gif" width="45%" style="display:inline-block; margin-right: 10px;"/>
-  <img src="./assets/finetuned.gif" width="45%" style="display:inline-block;"/>
-</p>
-
-<p align="center">
-  <b>Untuned YOLO (left) vs Finetuned YOLO (right): note how due to the inconsistency in football detection for the untuned model, the juggle detection struggles</b>
-</p>
-
-## 🛠️ TODO
-- [x] Comparison between untuned YOLO and finetuned YOLO
