@@ -15,7 +15,7 @@ POI = ["Ball", "Head", "Left_Knee", "Right_Knee", "Right_Foot", "Left_Foot"]
 def parse_args():
     parser = argparse.ArgumentParser(description="Football Juggle Counter")
     parser.add_argument('--video', type=str, default=None, help='Path to video file. Leave empty to use webcam.')
-    parser.add_argument('--save', type=str, default=None, help='Path to save directory. Leave empty to not save.')
+    parser.add_argument('--save', type=str, default=None, help='Path to save directory.')
     parser.add_argument('--plot', action='store_true', help='Plot ball Y-trajectory.')
 
     return parser.parse_args()
@@ -90,7 +90,7 @@ def main():
         #predictions= predict_para(measurements, predictions)
 
         # count juggle
-        #count = update_juggle_count(predictions, count)
+        count = update_juggle_count(predictions, count)
 
         # update plot
         if args.plot:
