@@ -8,6 +8,7 @@ from utils.juggle_counter import update_juggle_count
 from utils.draw_POI import draw_info
 from utils.plot_graph import init_plot, update_plot
 from utils.update_predict import update_measurements, predict_KF, predict_para
+import matplotlib.pyplot as plt
 
 POI = ["Ball", "Head", "Left_Knee", "Right_Knee", "Right_Foot", "Left_Foot"]
 
@@ -64,13 +65,12 @@ def main():
         fig, ax = init_plot()
 
     # Initialise history variables
-    measurements, predictions = {},{}
+    measurements, predictions, count = {},{},{}
     for point in POI:
         measurements[point] = np.empty(shape=(0,4))
         predictions[point] = np.empty(shape=(0,4))
 
-    # Initialise juggle counter
-    juggle_count = 0
+        count[point] = 0
 
     # Loop
     while cap.isOpened():
@@ -90,14 +90,14 @@ def main():
         #predictions= predict_para(measurements, predictions)
 
         # count juggle
-        juggle_count = update_juggle_count(predictions, juggle_count)
+        #count = update_juggle_count(predictions, count)
 
         # update plot
         if args.plot:
             update_plot(ax, measurements, predictions)
 
         # draw on image
-        draw_info(frame, POIs, juggle_count)
+        draw_info(frame, POIs, count)
 
         # show image
         cv2.imshow("Football Juggle Counter", frame)

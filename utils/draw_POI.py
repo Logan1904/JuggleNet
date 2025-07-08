@@ -12,7 +12,7 @@ selected_landmarks = [
     mp_pose.PoseLandmark.RIGHT_FOOT_INDEX,
 ]
 
-def draw_info(frame, POI, juggle_count):
+def draw_info(frame, POI, count):
     # draw POIs on frame
     for point,val in POI.items():
         if val[0]:
@@ -32,4 +32,7 @@ def draw_info(frame, POI, juggle_count):
                 cv2.circle(frame, (int(cx), int(cy)), 6, (0, 0, 255), -1)
 
     # juggle counter
-    cv2.putText(frame, f"Juggles: {juggle_count}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0), 3)
+    for i,(key,val) in enumerate(count.items()):
+        if key == "Ball":
+            continue
+        cv2.putText(frame, f"{key}: {val}", (10, i*30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
