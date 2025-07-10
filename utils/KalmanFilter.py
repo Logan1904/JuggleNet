@@ -1,14 +1,18 @@
 import numpy as np
 
 class Kalman1D:
-    def __init__(self, process_variance=0.01, measurement_variance=0.1):
-        self.x = np.array([[0.], [0.]])                 # state = [position, velocity]
+    def __init__(self, process_variance=0.01, measurement_variance=0.1, dt=1):
+        self.x = np.array([[0.], [0.], [0.]])           # state = [position, velocity, acceleration]
 
-        self.P = np.eye(2)                              # Covariance
-        self.F = np.array([[1, 1], [0, 1]])             # State Transition Model
-        self.H = np.array([[1, 0]])                     # Measurement Model
+        self.P = np.eye(3)                              # Covariance
+        self.F = np.array([                              # State Transition Model with acceleration
+            [1, dt, 0.5*dt**2], 
+            [0, 1, dt], 
+            [0, 0, 1]
+            ]) 
+        self.H = np.array([[1, 0, 0]])                  # Measurement Model
         self.R = np.array([[measurement_variance]])     # Measurement Noise
-        self.Q = process_variance * np.eye(2)           # Process Noise
+        self.Q = process_variance * np.eye(3)           # Process Noise
 
         self.initialised = False
 
@@ -25,6 +29,6 @@ class Kalman1D:
         K = self.P @ self.H.T @ np.linalg.inv(S)        # Kalman Gain
 
         self.x = self.x + K @ y                         # Posterior State Estimate
-        self.P = (np.eye(2) - K @ self.H) @ self.P      # Posterior Covariance Estimate
+        self.P = (np.eye(3) - K @ self.H) @ self.P      # Posterior Covariance Estimate
 
         self.initialised = True
