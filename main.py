@@ -62,7 +62,7 @@ def main():
 
     # Initialise plot
     if args.plot:
-        fig, ax = init_plot()
+        fig, axes = init_plot()
 
     # Initialise history variables
     measurements, predictions, count = {},{},{}
@@ -89,12 +89,12 @@ def main():
         predictions = predict_KF(measurements, predictions)
         #predictions= predict_para(measurements, predictions)
 
-        # count juggle
-        count = update_juggle_count(predictions, count)
-
         # update plot
         if args.plot:
-            update_plot(ax, measurements, predictions)
+            update_plot(axes, measurements, predictions)
+
+        # count juggle
+        count = update_juggle_count(predictions, count)
 
         # draw on image
         draw_info(frame, POIs, count)
