@@ -1,5 +1,5 @@
 import numpy as np
-from utils.Kalman1D import Kalman1D
+from utils.KalmanFilter import Kalman1D
 
 MAX_LEN = 100
 kalman_filter = {}
