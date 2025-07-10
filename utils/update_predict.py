@@ -43,12 +43,14 @@ def predict_KF(measurements, predictions):
             if not kf_x.initialised:
                 kf_x.x[0,0] = measurement_x     # initialise position
                 kf_x.x[1,0] = 0                 # assume starting velocity is 0
+                kf_x.x[2,0] = 0                 # assume starting acceleration is 0
                 kf_x.initialised = True
             kf_x.update(measurement_x)
         if not np.isnan(measurement_y):
             if not kf_y.initialised:
                 kf_y.x[0,0] = measurement_y     # initialise position
                 kf_y.x[1,0] = 0                 # assume starting velocity is 0
+                kf_y.x[2,0] = 0                 # assume starting acceleration is 0
                 kf_y.initialised = True
             kf_y.update(measurement_y)
         
