@@ -51,9 +51,9 @@ git clone https://github.com/yourusername/jugglenet.git
 cd jugglenet
 ```
 
-### 2. Install Dependencies
+### 2. Create the "JuggleNet" virtual environment
 ```bash
-pip install -r requirements.txt
+conda env create -f environment.yml
 ```
 
 ### 3. Run Script
