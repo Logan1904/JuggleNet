@@ -33,9 +33,9 @@ class JuggleCounter:
         self.min_history_length = min_history_length
 
         # State tracking
-        self.last_counted_peak_idx = -np.inf
+        self.last_counted_frame_number = -np.inf
         self.counts = {}
-        self.frame_count = 0
+        self.total_frames_processed = 0
 
     def update(self, predictions: dict) -> dict:
         """
@@ -50,6 +50,7 @@ class JuggleCounter:
         """
         
         if "Ball" not in predictions or len(predictions["Ball"]) < self.min_history_length:
+            self.total_frames_processed += 1
             return self.counts
         
         # Extract ball y-coordinates
@@ -58,20 +59,30 @@ class JuggleCounter:
         # Find all peaks in trajectory
         peaks, properties = find_peaks(y, prominence=self.prominence)
 
+        # Convert array indices to absolute frame numbers
+        # The last element in the history is the current frame
+        current_frame_number = self.total_frames_processed
+        history_length = len(y)
+
         # Process each peak
         for peak_idx in peaks:
-            # Check if this is a new peak (not already counted, sufficient time gap)
-            if self.is_valid_peak(peak_idx):
-                # Find closest body part and count juggle
+            # Calculate absolute frame number of this peak
+            # peak_idx=0 is the oldest frame in history
+            # peak_idx=len(y)-1 is the current frame
+            peak_frame_number = current_frame_number - (history_length - 1 - peak_idx)
+            
+            if self.is_valid_peak(peak_frame_number):
                 self.count_juggle_at_peak(peak_idx, predictions)
-                self.last_counted_peak_idx = peak_idx
+                self.last_counted_frame_number = peak_frame_number
         
+        self.total_frames_processed += 1
+
         return self.counts
 
 
-    def is_valid_peak(self, peak_idx: int) -> bool:
+    def is_valid_peak(self, peak_frame_number: int) -> bool:
         """Check if peak should be counted (not double-counted, sufficient time gap)"""
-        return peak_idx > self.last_counted_peak_idx + self.min_gap_frames
+        return peak_frame_number > self.last_counted_frame_number + self.min_gap_frames
     
     def count_juggle_at_peak(self, peak_idx: int, predictions: dict):
         """Find closest body part at peak and increment count"""
