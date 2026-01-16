@@ -5,7 +5,7 @@ import numpy as np
 
 from utils.vision_estimate import get_POI
 from utils.juggle_counter import JuggleCounter
-from utils.draw_POI import draw_info
+from utils.draw_POI import Visualiser
 from utils.plot_graph import init_plot, update_plot
 from utils.update_predict import update_measurements, predict_KF, predict_para
 import matplotlib.pyplot as plt
@@ -78,6 +78,16 @@ def main():
         min_history_length=10
     )
 
+    # Initialise visualiser
+    visualiser = Visualiser(
+        ball_colour=(0, 255, 0),        # Green
+        landmark_colour=(0, 0, 255),    # Red
+        text_colour=(0, 0, 0),          # Black
+        text_thickness=3,
+        bbox_thickness=2,
+        landmark_radius=6
+    )
+
     # Loop
     while cap.isOpened():
         ret, frame = cap.read()
@@ -103,7 +113,11 @@ def main():
         count = juggle_counter.update(predictions)
 
         # draw on image
-        draw_info(frame, POIs, count)
+        visualiser.draw(frame, POIs, count)
+
+        # Optional: draw total count and FPS
+        visualiser.draw_total_count(frame, count)
+        visualiser.draw_fps(frame, fps)
 
         # show image
         cv2.imshow("Football Juggle Counter", frame)

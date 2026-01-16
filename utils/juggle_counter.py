@@ -65,6 +65,8 @@ class JuggleCounter:
                 # Find closest body part and count juggle
                 self.count_juggle_at_peak(peak_idx, predictions)
                 self.last_counted_peak_idx = peak_idx
+        
+        return self.counts
 
 
     def is_valid_peak(self, peak_idx: int) -> bool:
