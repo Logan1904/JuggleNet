@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from utils.vision_estimate import get_POI
-from utils.juggle_counter import update_juggle_count
+from utils.juggle_counter import JuggleCounter
 from utils.draw_POI import draw_info
 from utils.plot_graph import init_plot, update_plot
 from utils.update_predict import update_measurements, predict_KF, predict_para
@@ -65,12 +65,18 @@ def main():
         fig, axes = init_plot()
 
     # Initialise history variables
-    measurements, predictions, count = {},{},{}
+    measurements, predictions = {}, {}
     for point in POI:
         measurements[point] = np.empty(shape=(0,4))
         predictions[point] = np.empty(shape=(0,4))
 
-        count[point] = 0
+    # Initialise juggle counter
+    juggle_counter = JuggleCounter(
+        prominence=0.02,
+        min_gap_frames=5,   # 0.16s @ 30fps
+        max_distance=0.3,
+        min_history_length=10
+    )
 
     # Loop
     while cap.isOpened():
@@ -94,7 +100,7 @@ def main():
             update_plot(axes, measurements, predictions)
 
         # count juggle
-        count = update_juggle_count(predictions, count)
+        count = juggle_counter.update(predictions)
 
         # draw on image
         draw_info(frame, POIs, count)
